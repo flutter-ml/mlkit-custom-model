@@ -1,0 +1,34 @@
+name: custom_ml_model
+description: A Flutter project to use a custom TensorFlow Lite model in ML Kit
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.5 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  google_mlkit_image_labeling:
+    git:
+      url: https://github.com/flutter-ml/google_ml_kit_flutter.git
+      path: packages/google_mlkit_image_labeling
+      ref: master
+  google_mlkit_object_detection:
+    git:
+      url: https://github.com/flutter-ml/google_ml_kit_flutter.git
+      path: packages/google_mlkit_object_detection
+      ref: master
+  path: any
+  path_provider: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.2
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/ml/
+    - assets/images/

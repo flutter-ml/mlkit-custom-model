@@ -25,3 +25,5 @@ That will generate these files:
 * labels.txt
 
 You will need `model_with_metadata.tflite` to test in your mobile app using [ML Kit](https://developers.google.com/ml-kit).
+
+You can use and tweak our [demo app](https://github.com/flutter-ml/mlkit-custom-model/blob/main/flutter_demo_app) to test your tflite model using [google_mlkit_image_labeling](https://pub.dev/packages/google_mlkit_image_labeling) and [google_mlkit_object_detection](https://pub.dev/packages/google_mlkit_object_detection) in [Flutter](https://flutter.dev/). 
