@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -37,69 +38,87 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
-  final _images = {
-    'daisy': 'assets/images/daisy.jpg',
-    'dandelion': 'assets/images/dandelion.jpg',
-    'roses': 'assets/images/roses.jpg',
-    'sunflower': 'assets/images/sunflower.jpg',
-    'tulips': 'assets/images/tulips.jpg',
-  };
+  final _images = <String>[];
   ImageLabeler? _imageLabeler;
   ObjectDetector? _objectDetector;
   final _modelPath = 'assets/ml/object_labeler_flowers.tflite';
 
   @override
+  void initState() {
+    _getAssets();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final item = _images.entries.toList()[_counter];
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('Custom Model Demo app'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Image.asset(item.value),
-            FutureBuilder<List<ImageLabel>>(
-                future: _labelImage(item),
-                builder: (context, snapshot) {
-                  final labels = snapshot.data ?? [];
-                  var str = '...';
-                  if (labels.isNotEmpty) {
-                    final label = labels.reduce((curr, next) =>
-                        curr.confidence > next.confidence ? curr : next);
-                    str =
-                        'IMAGE LABELER:\ncorrect label: ${item.key}\nlabeler response: ${label.label}\nconfidence: ${label.confidence.toStringAsFixed(2)}';
-                  }
-                  return Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(str),
-                  );
-                }),
-            FutureBuilder<List<DetectedObject>>(
-                future: _detectObject(item),
-                builder: (context, snapshot) {
-                  final detectedObjects = snapshot.data ?? [];
-                  var str = '...';
-                  if (detectedObjects.isNotEmpty) {
-                    str =
-                        'OBJECT DETECTOR:\n${detectedObjects.map((e) => e.labels.map((e) => '${e.text} [${e.confidence.toStringAsFixed(2)}]').toString()).toList()}';
-                  }
-                  return Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(str),
-                  );
-                }),
-          ],
-        ),
-      ),
+      body: _images.isEmpty
+          ? Container()
+          : Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Image.asset(_images[_counter]),
+                  FutureBuilder<List<ImageLabel>>(
+                      future: _labelImage(_images[_counter]),
+                      builder: (context, snapshot) {
+                        final labels = snapshot.data ?? [];
+                        var str = '...';
+                        if (labels.isNotEmpty) {
+                          final label = labels.reduce((curr, next) =>
+                              curr.confidence > next.confidence ? curr : next);
+                          str =
+                              'IMAGE LABELER:\nlabeler response: ${label.label}\nconfidence: ${label.confidence.toStringAsFixed(2)}';
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(str),
+                        );
+                      }),
+                  FutureBuilder<List<DetectedObject>>(
+                      future: _detectObject(_images[_counter]),
+                      builder: (context, snapshot) {
+                        final detectedObjects = snapshot.data ?? [];
+                        var str = '...';
+                        if (detectedObjects.isNotEmpty) {
+                          str =
+                              'OBJECT DETECTOR:\n${detectedObjects.map((e) => e.labels.map((e) => '${e.text} [${e.confidence.toStringAsFixed(2)}]').toString()).toList()}';
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(str),
+                        );
+                      }),
+                ],
+              ),
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Next',
         child: const Icon(Icons.navigate_next),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+
+  void _getAssets() async {
+    final manifestContent = await rootBundle.loadString('AssetManifest.json');
+    final Map<String, dynamic> manifestMap = json.decode(manifestContent);
+    final assets = manifestMap.keys
+        .where((String key) => key.contains('images/'))
+        .where((String key) =>
+            key.contains('.jpg') ||
+            key.contains('.jpeg') ||
+            key.contains('.png') ||
+            key.contains('.webp'))
+        .toList();
+    setState(() {
+      _images.clear();
+      _images.addAll(assets);
+    });
   }
 
   void _incrementCounter() {
@@ -109,7 +128,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Future<List<ImageLabel>> _labelImage(MapEntry<String, String> item) async {
+  Future<List<ImageLabel>> _labelImage(String asset) async {
     if (_imageLabeler == null) {
       // initialize labeler
       final modelPath = await _getAssetPath(_modelPath);
@@ -117,12 +136,11 @@ class _MyHomePageState extends State<MyHomePage> {
       _imageLabeler = ImageLabeler(options: options);
     }
     // get and process image
-    final inputImage = InputImage.fromFilePath(await _getAssetPath(item.value));
+    final inputImage = InputImage.fromFilePath(await _getAssetPath(asset));
     return (await _imageLabeler?.processImage(inputImage)) ?? [];
   }
 
-  Future<List<DetectedObject>> _detectObject(
-      MapEntry<String, String> item) async {
+  Future<List<DetectedObject>> _detectObject(String asset) async {
     if (_objectDetector == null) {
       // initialize object detector
       final modelPath = await _getAssetPath(_modelPath);
@@ -135,7 +153,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _objectDetector = ObjectDetector(options: options);
     }
     // get and process image
-    final inputImage = InputImage.fromFilePath(await _getAssetPath(item.value));
+    final inputImage = InputImage.fromFilePath(await _getAssetPath(asset));
     return (await _objectDetector?.processImage(inputImage)) ?? [];
   }
 
