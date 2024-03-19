@@ -55,8 +55,8 @@ import pathlib
 import numpy as np
 import logging
 
-from tflite_support import metadata_schema_py_generated as _metadata_fb
-from tflite_support import metadata as _metadata
+from tensorflow_lite_support.metadata import metadata_schema_py_generated as _metadata_fb
+from tensorflow_lite_support.metadata.python import metadata as _metadata
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 logger = tf.get_logger()
