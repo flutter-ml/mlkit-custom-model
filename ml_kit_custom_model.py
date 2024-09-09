@@ -206,7 +206,7 @@ model = tf.keras.Sequential([
     tf.keras.layers.Dropout(0.2),
     tf.keras.layers.Flatten(),
     tf.keras.layers.Dense(128, activation='relu'),
-    tf.keras.layers.Dense(num_classes)
+    tf.keras.layers.Dense(num_classes, activation='softmax')
 ])
 
 """### Compile the model
@@ -215,7 +215,7 @@ For this tutorial, choose the `tf.keras.optimizers.Adam` optimizer and `tf.keras
 """
 
 model.compile(optimizer='adam',
-              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(),
               metrics=['accuracy'])
 
 """### Model summary
